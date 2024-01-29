@@ -1,113 +1,239 @@
-import Image from "next/image";
+"use client";
+// import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useEffect } from "react";
 
-export default function Home() {
+import { minutesToDuration } from "./lib/utils";
+import useInterval from "./lib/useInterval";
+import classNames from "./lib/class-names";
+
+import ProgressBar from "./ui/focus-and-bar/ProgressBar";
+import SessionLabel from "./ui/focus-and-bar/SessionLabel";
+
+import FocusMinus from "./ui/Focus-Buttons/FocusMinus";
+import FocusPlus from "./ui/Focus-Buttons/FocusPlus";
+
+import BreakPlus from "./ui/BreakButtons/BreakPlus";
+import BreakMinus from "./ui/BreakButtons/BreakMinus";
+
+import StopButton from "./ui/StopButton/StopButton";
+
+// These functions are defined outside of the component to insure they do not have access to state
+// and are, therefore more likely to be pure.
+
+/**
+ * Update the session state with new state after each tick of the interval.
+ * @param prevState
+ *  the previous session state
+ * @returns
+ *  new session state with timing information updated.
+ */
+function nextTick(prevState) {
+  const timeRemaining = Math.max(0, prevState.timeRemaining - 1);
+  return {
+    ...prevState,
+    timeRemaining,
+  };
+}
+
+/**
+ * Higher order function that returns a function to update the session state with the next session type upon timeout.
+ * @param focusDuration
+ *    the current focus duration
+ * @param breakDuration
+ *    the current break duration
+ * @returns
+ *  function to update the session state.
+ */
+function nextSession(focusDuration, breakDuration) {
+  /**
+   * State function to transition the current session type to the next session. e.g. On Break -> Focusing or Focusing -> On Break
+   */
+  return (currentSession) => {
+    if (currentSession.label === "Focusing") {
+      return {
+        label: "On Break",
+        timeRemaining: breakDuration * 60,
+      };
+    }
+    return {
+      label: "Focusing",
+      timeRemaining: focusDuration * 60,
+    };
+  };
+}
+
+export default function Page() {
+  // Timer starts out paused
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  // The current session - null where there is no session running
+  const [session, setSession] = useState(null);
+
+  // ToDo: Allow the user to adjust the focus and break duration.
+  const [focusDuration, setFocusDuration] = useState(25);
+  const [breakDuration, setBreakDuration] = useState(5);
+
+  // Decrease and increase handlers for focus duration
+  const handleFocusDecrease = () => {
+    if (focusDuration <= 5) {
+      return null;
+    } else {
+      setFocusDuration((currentValue) => currentValue - 5);
+    }
+  };
+  const handleFocusIncrease = () => {
+    if (60 <= focusDuration) {
+      return null;
+    } else {
+      setFocusDuration((currentValue) => currentValue + 5);
+    }
+  };
+
+  // Decrease and increase handlers for break duration
+  const handleBreakDecrease = (value) => {
+    if (breakDuration <= 1) {
+      return null;
+    } else {
+      setBreakDuration((currentValue) => currentValue - 1);
+    }
+  };
+  const handleBreakIncrease = (value) => {
+    if (15 <= breakDuration) {
+      return null;
+    } else {
+      setBreakDuration((currentValue) => currentValue + 1);
+    }
+  };
+
+  // Reset the session
+  const handleReset = () => {
+    setIsTimerRunning(false);
+    setSession(null);
+  };
+
+  /**
+   * Custom hook that invokes the callback function every second
+   *
+   * NOTE: You will not need to make changes to the callback function
+   */
+  useInterval(
+    () => {
+      if (session.timeRemaining === 0) {
+        new Audio("https://bigsoundbank.com/UPLOAD/mp3/1482.mp3").play();
+        return setSession(nextSession(focusDuration, breakDuration));
+      }
+      return setSession(nextTick);
+    },
+    isTimerRunning ? 1000 : null
+  );
+
+  /**
+   * Called whenever the play/pause button is clicked.
+   */
+  const playPause = () => {
+    setIsTimerRunning((prevState) => {
+      const nextState = !prevState;
+      if (nextState) {
+        setSession((prevStateSession) => {
+          // If the timer is starting and the previous session is null,
+          // start a focusing session.
+          if (prevStateSession === null) {
+            return {
+              label: "Focusing",
+              timeRemaining: focusDuration * 60,
+            };
+          }
+          return prevStateSession;
+        });
+      }
+      return nextState;
+    });
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+      <div className="row">
+        <div className="col">
+          <div className="input-group input-group-lg mb-2">
+            <span className="input-group-text" data-testid="duration-focus">
+              {/* TODO: Update this text to display the current focus session duration */}
+              Focus Duration: {minutesToDuration(focusDuration)}
+            </span>
+            <div className="input-group-append">
+              {/* TODO: Implement decreasing focus duration and disable during a focus or break session */}
+              <FocusMinus
+                session={session}
+                handleFocusDecrease={handleFocusDecrease}
+              />
+              {/* TODO: Implement increasing focus duration  and disable during a focus or break session */}
+              <FocusPlus
+                session={session}
+                handleFocusIncrease={handleFocusIncrease}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="col">
+          <div className="float-right">
+            <div className="input-group input-group-lg mb-2">
+              <span className="input-group-text" data-testid="duration-break">
+                {/* TODO: Update this text to display the current break session duration */}
+                Break Duration: {minutesToDuration(breakDuration)}
+              </span>
+              <div className="input-group-append">
+                {/* TODO: Implement decreasing break duration and disable during a focus or break session*/}
+                <BreakMinus
+                  session={session}
+                  handleBreakDecrease={handleBreakDecrease}
+                />
+                {/* TODO: Implement increasing break duration and disable during a focus or break session*/}
+                <BreakPlus
+                  session={session}
+                  handleBreakIncrease={handleBreakIncrease}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="row">
+        <div className="col">
+          <div
+            className="btn-group btn-group-lg mb-2"
+            role="group"
+            aria-label="Timer controls"
+          >
+            <button
+              type="button"
+              className=" bg-slate-500 p-4 rounded-2xl"
+              data-testid="play-pause"
+              title="Start or pause timer"
+              onClick={() => playPause()}
+            >
+              {isTimerRunning ? (
+                <>
+                  <span>Pause</span>
+                </>
+              ) : (
+                <>
+                  <span>Play</span>
+                </>
+              )}
+            </button>
+            <StopButton session={session} handleReset={handleReset} />
+          </div>
+        </div>
       </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <SessionLabel
+        session={session}
+        focusDuration={focusDuration}
+        breakDuration={breakDuration}
+        isTimerRunning={isTimerRunning}
+      />
+      <ProgressBar
+        session={session}
+        focusDuration={focusDuration}
+        breakDuration={breakDuration}
+      />
     </main>
   );
 }
