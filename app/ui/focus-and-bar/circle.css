@@ -1,0 +1,15 @@
+.circle-background {
+  fill: none;
+  stroke: rgb(71 85 105);
+}
+
+.circle-progress {
+  fill: none;
+  stroke: rgb(239 68 68);
+}
+
+.circle-text {
+  font-size: 2rem;
+  font-weight: bold;
+  fill: rgb(225 225 225);
+}

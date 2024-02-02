@@ -17,6 +17,8 @@ import BreakMinus from "./ui/BreakButtons/BreakMinus";
 
 import StopButton from "./ui/StopButton/StopButton";
 
+import CircleProgressBar from "./ui/focus-and-bar/CircleProgressBar";
+
 // These functions are defined outside of the component to insure they do not have access to state
 // and are, therefore more likely to be pure.
 
@@ -150,15 +152,18 @@ export default function Page() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="row">
-        <div className="col">
-          <div className="input-group input-group-lg mb-2">
-            <span className="input-group-text" data-testid="duration-focus">
+    <main className="flex min-h-screen flex-col items-center justify-between p-18 lg:py-10 dark:bg-slate-900">
+      <div className="flex lg:w-auto justify-evenly bg-slate-700 lg:p-6 rounded-md">
+        <div className=" flex">
+          <div className="flex mb-2 flex-auto w-full flex-row p-4 gap-x-2">
+            <span
+              className="p-4 bg-slate-400 rounded-xl text-white border border-gray-800"
+              data-testid="duration-focus"
+            >
               {/* TODO: Update this text to display the current focus session duration */}
-              Focus Duration: {minutesToDuration(focusDuration)}
+              Focus Length: {minutesToDuration(focusDuration)}
             </span>
-            <div className="input-group-append">
+            <div className="lg:flex lg:gap-x-2">
               {/* TODO: Implement decreasing focus duration and disable during a focus or break session */}
               <FocusMinus
                 session={session}
@@ -172,14 +177,17 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <div className="col">
+        <div className="flex-initial">
           <div className="float-right">
-            <div className="input-group input-group-lg mb-2">
-              <span className="input-group-text" data-testid="duration-break">
+            <div className="flex mb-2 flex-auto w-full flex-row p-4 gap-x-2">
+              <span
+                className="p-4 bg-slate-400 rounded-xl text-white border border-gray-800"
+                data-testid="duration-break"
+              >
                 {/* TODO: Update this text to display the current break session duration */}
-                Break Duration: {minutesToDuration(breakDuration)}
+                Break Length: {minutesToDuration(breakDuration)}
               </span>
-              <div className="input-group-append">
+              <div className="flex gap-x-2">
                 {/* TODO: Implement decreasing break duration and disable during a focus or break session*/}
                 <BreakMinus
                   session={session}
@@ -195,16 +203,24 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <div className="row">
-        <div className="col">
+      <div>
+        <CircleProgressBar
+          circleWidth="500"
+          session={session}
+          focusDuration={focusDuration}
+          breakDuration={breakDuration}
+        ></CircleProgressBar>
+      </div>
+      <div className="row flex rounded p-4 center">
+        <div className="col w-full">
           <div
-            className="btn-group btn-group-lg mb-2"
+            className="flex mb-2 w-full justify-center gap-x-6"
             role="group"
             aria-label="Timer controls"
           >
             <button
               type="button"
-              className=" bg-slate-500 p-4 rounded-2xl"
+              className=" bg-slate-500 p-6 rounded-2xl text-xl text-white"
               data-testid="play-pause"
               title="Start or pause timer"
               onClick={() => playPause()}
@@ -223,7 +239,7 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <SessionLabel
+      {/* <SessionLabel
         session={session}
         focusDuration={focusDuration}
         breakDuration={breakDuration}
@@ -233,7 +249,7 @@ export default function Page() {
         session={session}
         focusDuration={focusDuration}
         breakDuration={breakDuration}
-      />
+      /> */}
     </main>
   );
 }

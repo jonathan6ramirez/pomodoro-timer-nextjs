@@ -21,7 +21,7 @@ function BreakMinus({ session, handleBreakDecrease }) {
         data-testid="decrease-break"
         onClick={() => handleBreakDecrease()}
       >
-        <span className="oi oi-minus" />
+        {/* <span className="oi oi-minus" /> */}
         <span className="text-white tracking-wide">Minus</span>
       </button>
     );

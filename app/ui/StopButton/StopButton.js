@@ -8,7 +8,7 @@ function StopButton({ session, handleReset }) {
       {!session ? (
         <button
           type="button"
-          className=" bg-slate-300 p-4 rounded-2xl"
+          className=" bg-slate-300 p-6 rounded-2xl text-xl"
           data-testid="stop"
           title="Stop the session"
           disabled={true}
@@ -19,7 +19,7 @@ function StopButton({ session, handleReset }) {
       ) : (
         <button
           type="button"
-          className=" bg-slate-500 p-4 rounded-2xl"
+          className=" bg-slate-500 p-6 rounded-2xl text-xl"
           data-testid="stop"
           title="Stop the session"
           onClick={() => handleReset()}

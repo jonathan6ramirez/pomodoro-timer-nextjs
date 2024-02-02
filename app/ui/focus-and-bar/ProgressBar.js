@@ -13,6 +13,7 @@ function ProgressBar({ session, focusDuration, breakDuration }) {
       );
       return percentage;
     }
+
     function calculateAriaValue() {
       let durationSeconds = 0;
       let ariaValue = 0;
@@ -29,20 +30,20 @@ function ProgressBar({ session, focusDuration, breakDuration }) {
         return ariaValue;
       }
     }
+
     return (
-      <div className="row mb-2">
-        <div className="col">
-          <div className="progress" style={{ height: "20px" }}>
-            <div
-              className="progress-bar"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-valuenow={calculateAriaValue()} // TODO: Increase aria-valuenow as elapsed time increases
-              style={{ width: calculatePercetage() + "%" }} // TODO: Increase width % as elapsed time increases
-            />
-          </div>
-        </div>
+      <div
+        className="progress w-full bg-slate-600 rounded"
+        style={{ height: "20px" }}
+      >
+        <div
+          className="progress-bar bg-red-500 h-full rounded"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow={calculateAriaValue()} // TODO: Increase aria-valuenow as elapsed time increases
+          style={{ width: calculatePercetage() + "%" }} // TODO: Increase width % as elapsed time increases
+        />
       </div>
     );
   } else {

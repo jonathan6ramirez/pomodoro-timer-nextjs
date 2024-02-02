@@ -14,7 +14,7 @@ function SessionLabel({
   if (session != null) {
     return (
       <>
-        <div>
+        <div className="bg-slate-700 p-6 rounded-md text-white">
           {/* TODO: This area should show only when there is an active focus or break - i.e. the session is running or is paused */}
           <div className="row mb-2">
             <div className="col">
@@ -32,8 +32,10 @@ function SessionLabel({
             </div>
           </div>
           {isTimerRunning == true ? null : (
-            <div className="row mb-2" style={pausedPrompt}>
-              <h2 id="paused-prompt">PAUSED</h2>
+            <div className="row mb-2 text-lg" style={pausedPrompt}>
+              <h2 id="paused-prompt" className="font-medium text-xl">
+                PAUSED
+              </h2>
             </div>
           )}
         </div>
